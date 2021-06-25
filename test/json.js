@@ -32,12 +32,14 @@ describe('JSON Schema', function ()
 			type: Object,
 			properties: {
 				date: { type: Date },
+				dates: [Date],
 			}
 		})
 
 		const date = new Date();
 		const postParse = {
 			date,
+			dates: [date, date, date]
 		}
 		const preParse = JSON.parse(JSON.stringify(postParse));
 

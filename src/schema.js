@@ -2,7 +2,7 @@ const jsonSchema = require("./jsonSchema");
 const { schemaTypes } = require('./schemaTypes');
 const addFormats = require('ajv-formats');
 const Ajv = require('ajv');
-const { walkData } = require("./schemaDataWalker");
+const { walkData, generateWalker } = require("./schemaDataWalker");
 
 class Schema 
 {
@@ -20,22 +20,25 @@ class Schema
 		this.schemaObj = schemaObj;
 
 		this.validator = Schema.ajv.compile(this.toJsonSchema());
+		this.postParser = generateWalker(this, (key, variable, type, code) => {
+			if (type.postParse)
+			{
+				const typeName = type.constructor.name
+				code.addExternalRef(typeName, type);
+				code.push(`${variable} = ${typeName}.postParse(${variable});`);
+				code.newLine();
+			}
+		})
 	}
 
-	validate(data)
+	validateJSON(data)
 	{
 		return this.validator(data);
 	}
 
 	postParse(data)
 	{
-		//TODO: Use code gen to build faster post parse functions... for now just iterate.
-		walkData(data, this, (key, value, type) => {
-			if (type.postParse)
-			{
-				return type.postParse(value);
-			}
-		})
+		return this.postParser(data);
 	}
 }
 
