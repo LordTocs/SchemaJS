@@ -1,6 +1,4 @@
 const { _ } = require('ajv');
-const { schemaTypes, SchemaType } = require('./schemaTypes');
-
 
 class SchemaTransformer
 {
@@ -12,7 +10,7 @@ class SchemaTransformer
 
 	transform()
 	{
-		Object.assign(this.result, this._transformValue(this.schema));
+		Object.assign(this.result, this._transformValue(this.schema.schemaObj));
 	}
 
 	_transformValue(value)
@@ -74,7 +72,7 @@ class SchemaTransformer
 			return this.createReference(typeValue);
 		}
 
-		const type = schemaTypes.find((t) => t.isType(typeValue));
+		const type = this.schema.constructor.schemaTypes.find((t) => t.isType(typeValue));
 
 		if (!type)
 		{

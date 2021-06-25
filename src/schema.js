@@ -1,21 +1,21 @@
-const { JsonSchemaTransformer } = require("./jsonSchema");
+const jsonSchema = require("./jsonSchema");
+const { schemaTypes } = require('./schemaTypes');
 
 class Schema 
 {
+	static schemaTypes = [...schemaTypes];
+
+	static use(middleware) {
+		middleware(Schema);
+	}
+
 	constructor(name, schemaObj)
 	{
 		this.name = name;
 		this.schemaObj = schemaObj;
 	}
-
-	toJsonSchema()
-	{
-		const tf = new JsonSchemaTransformer(this.schemaObj);
-
-		tf.transform();
-
-		return tf.result;
-	}
 }
+
+Schema.use(jsonSchema);
 
 module.exports = Schema;
