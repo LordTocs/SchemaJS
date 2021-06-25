@@ -30,6 +30,11 @@ class DateType
 	{
 		return (typeValue === Date);
 	}
+
+	postParse(value)
+	{
+		return new Date(value);
+	}
 }
 
 module.exports = {
