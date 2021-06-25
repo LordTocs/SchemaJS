@@ -10,10 +10,10 @@ class SchemaTransformer
 
 	transform()
 	{
-		Object.assign(this.result, this._transformValue(this.schema.schemaObj));
+		Object.assign(this.result, this._transformValue(null, this.schema.schemaObj));
 	}
 
-	_transformValue(value)
+	_transformValue(key, value)
 	{
 		let typeValue = value;
 
@@ -41,7 +41,7 @@ class SchemaTransformer
 			{
 				const propValue = value.properties[key];
 				//Recursive Property Visit
-				this.setProp(subObj, key, this._transformValue(propValue));
+				this.setProp(subObj, key, this._transformValue(key, propValue));
 			}
 
 			return subObj;
@@ -57,10 +57,12 @@ class SchemaTransformer
 				arrayItems = value;
 			}
 
+			let i = 0;
 			for (let arrayValue of arrayItems)
 			{
 				//Recursive Array Visit
-				this.pushArrayItem(subArray, this._transformValue(arrayValue));
+				this.pushArrayItem(subArray, this._transformValue(i, arrayValue));
+				++i;
 			}
 
 			return subArray;
@@ -80,7 +82,7 @@ class SchemaTransformer
 		}
 
 		//Visit Property
-		return this.createProperty(type, value);
+		return this.createProperty(key, value, type);
 	}
 }
 

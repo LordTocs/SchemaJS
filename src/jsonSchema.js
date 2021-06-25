@@ -3,10 +3,37 @@ const { StringType, NumberType, DateType } = require('./schemaTypes');
 
 class JsonSchemaTransformer extends SchemaTransformer
 {
-	constructor(schema)
+	constructor(schema, includeDefinitions = true, definitionsObj = null)
 	{
 		super(schema);
 		this.jsonSchema = {};
+		this.includeDefinitions = includeDefinitions;
+		this.definitionsObj = definitionsObj;
+	}
+
+	_markRequired(name)
+	{
+		if (!("required" in this.jsonSchema))
+			this.jsonSchema.required = [];
+		this.jsonSchema.required.push(name);
+	}
+
+	_addReference(schema)
+	{
+		if (!this.includeDefinitions)
+			return;
+		
+		if (!this.definitionsObj && !("definitions" in this.jsonSchema))
+			this.jsonSchema.definitions = {};
+		
+		const defObj = this.definitionsObj || this.jsonSchema.definitions;
+		
+		const subtf = new JsonSchemaTransformer(this, true, defObj);
+
+		subtf.transform();
+
+		defObj[schema.name] = subtf.result;
+
 	}
 
 	createSubObject()
@@ -33,12 +60,17 @@ class JsonSchemaTransformer extends SchemaTransformer
 		}
 	}
 
-	createProperty(type, typeInfo)
+	createProperty(key, schemaObj, schemaType)
 	{
 		const result = {};
-		result.type = type.toJsonSchemaType();
+		result.type = schemaType.toJsonSchemaType();
 
-		Object.assign(result, type.toJsonSchemaProperties(typeInfo))
+		Object.assign(result, schemaType.toJsonSchemaProperties(schemaObj))
+
+		if (schemaObj.required && typeof key == 'string')
+		{
+			this._markRequired(key);
+		}
 
 		return result;
 	}

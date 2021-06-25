@@ -1,9 +1,11 @@
 const jsonSchema = require("./jsonSchema");
 const { schemaTypes } = require('./schemaTypes');
+const Ajv = require('ajv');
 
 class Schema 
 {
 	static schemaTypes = [...schemaTypes];
+	static ajv = new Ajv();
 
 	static use(middleware) {
 		middleware(Schema);
@@ -13,6 +15,8 @@ class Schema
 	{
 		this.name = name;
 		this.schemaObj = schemaObj;
+
+		ajv.addSchema(this.toJsonSchema(), name);
 	}
 }
 
