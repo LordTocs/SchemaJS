@@ -59,10 +59,10 @@ describe('JSON Schema', function ()
 			}
 		})
 
-		expect(testSchema.validate({
+		expect(testSchema.validateJSON({
 			hello: 1,
 			goodbye: "Yo?",
-			here: new Date()
+			here: JSON.parse(JSON.stringify(new Date()))
 		})).to.equal(true)
 	})
 })
