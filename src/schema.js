@@ -2,7 +2,7 @@ const jsonSchema = require("./jsonSchema");
 const { schemaTypes } = require('./schemaTypes');
 const addFormats = require('ajv-formats');
 const Ajv = require('ajv');
-const { walkData, generateWalker } = require("./schemaDataWalker");
+const { generateWalker } = require("./schemaDataWalker");
 
 class Schema 
 {
@@ -23,10 +23,9 @@ class Schema
 		this.postParser = generateWalker(this, (key, variable, type, code) => {
 			if (type.postParse)
 			{
-				const typeName = type.constructor.name
+				const typeName = type.constructor.name;
 				code.addExternalRef(typeName, type);
-				code.push(`${variable} = ${typeName}.postParse(${variable});`);
-				code.newLine();
+				code.statement(`${variable} = ${typeName}.postParse(${variable});`);
 			}
 		})
 	}

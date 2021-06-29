@@ -1,35 +1,36 @@
 
 
+function renderIndented(str)
+{
+	return str.replace('\n', '\n\t');
+}
+
+class CodeScope
+{
+	constructor(header)
+	{
+		this.body = "";
+		this.header = header;
+	}
+
+	push(str)
+	{
+		this.body += str;
+	}
+}
+
 class CodeGenerator
 {
 	constructor()
 	{
-		this.indent = 0;
-		this.code = "";
 		this.varCounter = 0;
 		this.refs = {};
+		this.flowStack = [new CodeScope(null)];
 	}
 
-	newLine()
-	{
-		this.code += '\n';
-		for (let i = 0; i < this.indent; ++i)
-		{
-			this.code += '	';
-		}
-	}
-
-	letVar()
+	getVar()
 	{
 		const varName = `var${this.varCounter++}`;
-		this.code += `let ${varName}`;
-		return varName;
-	}
-
-	constVar()
-	{
-		const varName = `var${this.varCounter++}`;
-		this.code += `const ${varName}`;
 		return varName;
 	}
 
@@ -40,43 +41,65 @@ class CodeGenerator
 
 	push(str)
 	{
-		this.code += str;
+		const scope = this.flowStack[this.flowStack.length - 1];
+		scope.push(str);
+	}
+
+	statement(str)
+	{
+		this.push(`${str}\n`);
 	}
 
 	forLoop(array)
 	{
-		this.push(`for (`);
-		const iterator = this.letVar();
-		this.push(` = 0; ${iterator} < ${array}.length; ++${iterator})`);
-		this.openScope();
+		const iterator = this.getVar();
+		this.openScope(`for (let ${iterator} = 0; ${iterator} < ${array}.length; ++${iterator})`);
 		return iterator;
 	}
 
-	openScope()
+	openScope(header)
 	{
-		this.newLine();
-		this.code += '{'
-		this.indent++;
-		this.newLine();
+		this.flowStack.push(
+			new CodeScope(header)
+		)
 	}
 
 	closeScope()
 	{
-		this.indent--;
-		this.newLine();
-		this.code += '}'
-		this.newLine();
+		const scope = this.flowStack.pop();
+
+		//trim it
+		scope.body = scope.body.trim();
+		if (scope.body.length == 0)
+		{
+			//There's nothing here don't add it.
+			return;
+		}
+
+		const outerScope = this.flowStack[this.flowStack.length - 1];
+
+		if (scope.header)
+		{
+			outerScope.push(scope.header);
+			outerScope.push('\n');
+		}
+		outerScope.push('{\n');
+		outerScope.push(renderIndented(scope.body));
+		outerScope.push('}\n');
 	}
 
 	ifStatement(condition)
 	{
-		this.code += `if (${condition})`;
-		this.openScope();
+		this.openScope(`if (${condition})`);
 	}
 
 	createFunction(args = [])
 	{
-		const func =  new Function(...args, ...Object.keys(this.refs), this.code);
+		//TODO: Assert there's only one scope here meaning we've closed any open scopes.
+		const lastScope = this.flowStack[0];
+		lastScope.body = lastScope.body.trim();
+
+		const func = new Function(...args, ...Object.keys(this.refs), lastScope.body);
 
 		return (...argValues) => func(...argValues, ...Object.values(this.refs));
 	}
