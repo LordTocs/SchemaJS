@@ -2,7 +2,7 @@
   "name": "schema",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "ajv": "^8.4.0",
-    "ajv-formats": "^2.1.0",
+    "ajv-formats": "^2.1.0"
+  },
+  "devDependencies": {
     "chai": "^4.3.4",
     "mocha": "^8.4.0"
   }

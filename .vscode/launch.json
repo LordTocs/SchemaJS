@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch OpenAPI",
+      "program": "${workspaceFolder}/packages/openapi/src/index.js",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node"
+    },
+    {
       "name": "mocha",
       "type": "node",
       "request": "launch",
