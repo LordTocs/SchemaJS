@@ -47,19 +47,19 @@ class RouteResponse
 	constructor(code, content, description)
 	{
 		this.code = code;
-		this.content = new OpenAPIContent(content);
+		this.content = content ? new OpenAPIContent(content) : null;
 		this.description = description;
 	}
 
 	toDoc(doc)
 	{
-		const result = {
-			content: this.content.toDoc(doc)
-		};
+		const result = {};
+
+		if (this.content)
+			result.content = this.content.toDoc(doc);
 
 		if (this.description)
 			result.description = this.description;
-
 
 		return result;
 	}
@@ -85,6 +85,28 @@ class RouteParameter
 
 		if (this.description)
 			result.description = this.description;
+
+		return result;
+	}
+}
+
+class RouteBody
+{
+	constructor(description, contentSchema)
+	{
+		this.description = description;
+		this.contentSchema = contentSchema ? new OpenAPIContent(contentSchema) : null;
+	}
+
+	toDoc(doc)
+	{
+		const result = {};
+
+		if (this.description)
+			result.description = this.description;
+
+		if (this.contentSchema)
+			result.content = this.contentSchema.toDoc(doc);
 
 		return result;
 	}
@@ -145,7 +167,14 @@ class Route
 
 		if ("body" in spec)
 		{
-			this.body = new OpenAPIContent(spec.body);
+			if ('description' in spec.body || 'content' in spec.body)
+			{
+				this.body = new RouteBody(spec.body.description, spec.body.content)
+			}
+			else
+			{
+				this.body = new RouteBody(null, spec.body);
+			}
 		}
 
 		if (typeof path == 'string' || path instanceof String)

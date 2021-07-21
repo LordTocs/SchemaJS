@@ -7,7 +7,7 @@ describe('OpenAPI JSON Document', function ()
 {
 	it('Basic Routes', function ()
 	{
-		const getRoute = new Route('testRoute', '/foo', {
+		const getRoute = new Route('getRoute', '/foo', {
 			operation: 'get',
 			description: 'Returns some info.',
 			responses: {
@@ -17,6 +17,22 @@ describe('OpenAPI JSON Document', function ()
 						hello: String,
 						goodbye: Number
 					}
+				}
+			}
+		})
+
+		const createRoute = new Route('createRoute', '/foo', {
+			operation: 'post',
+			description: 'Collects some info.',
+			body: {
+				type: Object,
+				properties: {
+					foo: String
+				},
+			},
+			responses: {
+				201: {
+					description: "Success."
 				}
 			}
 		})
@@ -31,7 +47,7 @@ describe('OpenAPI JSON Document', function ()
 				"email": "support@example.com"
 			},
 			version: "1.0.1"
-		}, [getRoute]);
+		}, [getRoute, createRoute]);
 
 
 		const doc = openapi.toDocument();
@@ -55,7 +71,7 @@ describe('OpenAPI JSON Document', function ()
 			paths: {
 				'/foo': {
 					'get': {
-						operationId: 'testRoute',
+						operationId: 'getRoute',
 						description: 'Returns some info.',
 						responses: {
 							"200": {
@@ -70,6 +86,27 @@ describe('OpenAPI JSON Document', function ()
 										}
 									}
 								}
+							}
+						}
+					},
+					'post': {
+						operationId: 'createRoute',
+						description: 'Collects some info.',
+						requestBody: {
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											foo: { type: 'string' },
+										}
+									}
+								}
+							}
+						},
+						responses: {
+							"201": {
+								description: "Success."
 							}
 						}
 					}
