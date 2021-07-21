@@ -27,6 +27,9 @@ class JsonSchemaTransformer extends SchemaTransformer
 			this.jsonSchema.definitions = {};
 		
 		const defObj = this.definitionsObj || this.jsonSchema.definitions;
+
+		if (defObj[schema.name])
+			return; //It's already added
 		
 		const subtf = new JsonSchemaTransformer(this, true, defObj);
 
@@ -53,7 +56,7 @@ class JsonSchemaTransformer extends SchemaTransformer
 
 	createReference(schema)
 	{
-		//Store the list of refs somewhere.
+		this._addReference(schema);
 
 		return {
 			$ref: `#/definitions/${schema.name}`
@@ -129,9 +132,9 @@ function install (schema) {
 		return { format: 'date-time' };
 	}
 
-	schema.prototype.toJsonSchema = function()
+	schema.prototype.toJsonSchema = function(includeDefinitions = true, definitionsObj = null)
 	{
-		const tf = new JsonSchemaTransformer(this);
+		const tf = new JsonSchemaTransformer(this, includeDefinitions, definitionsObj);
 
 		tf.transform();
 

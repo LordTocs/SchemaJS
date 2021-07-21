@@ -5,11 +5,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch OpenAPI",
-      "program": "${workspaceFolder}/packages/openapi/src/index.js",
+      "name": "Test OpenAPI",
       "request": "launch",
+      "type": "node",
       "skipFiles": ["<node_internals>/**"],
-      "type": "pwa-node"
+      "program": "${workspaceRoot}/packages/openapi/node_modules/mocha/bin/_mocha",
+	  "stopOnEntry": false,
+      "args": ["--no-timeouts", "--colors"],
+      "cwd": "${workspaceRoot}/packages/openapi",
+      "runtimeExecutable": null,
+      "env": {
+        "NODE_ENV": "testing"
+      }
     },
     {
       "name": "mocha",
