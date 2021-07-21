@@ -119,9 +119,9 @@ function rp(strings, ...params)
 	for (let i = 0; i < strings.length; ++i)
 	{
 		pathString += strings[i];
-		if (paramObjects[i])
+		if (params[i])
 		{
-			pathString += `:${paramObjects[i].name}`
+			pathString += `:${params[i].name}`
 		}
 	}
 
@@ -185,7 +185,7 @@ class Route
 		{
 			//It's a rp template string
 			this.routePath = path.pathString;
-			for (let param in path.params)
+			for (let param of path.params)
 			{
 				this.pathParams.push(new RouteParameter(param.name, param.schema, param.description, true));
 			}
@@ -201,7 +201,7 @@ class Route
 			}
 			else
 			{
-				this.queryParams.push(new RouteParameter(paramid, param))
+				this.queryParams.push(new RouteParameter(paramId, param))
 			}
 		}
 	}
@@ -224,14 +224,14 @@ class Route
 
 		const parameters = [];
 
-		for (let queryParam in this.queryParams)
+		for (let queryParam of this.queryParams)
 		{
 			const param = queryParam.toDoc(doc);
 			param.in = 'query';
 			parameters.push(param);
 		}
 
-		for (let pathParam in this.pathParams)
+		for (let pathParam of this.pathParams)
 		{
 			const param = pathParam.toDoc(doc);
 			param.in = 'path';
