@@ -13,7 +13,7 @@ describe('OpenAPI JSON Document', function ()
 			schema: String
 		}
 
-		const getRoute = new Route('getRoute', '/foo', {
+		const getRoute = new Route('getRoute', rp`/foo`, {
 			operation: 'get',
 			description: 'Returns some info.',
 			responses: {
