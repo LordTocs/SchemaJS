@@ -16,7 +16,16 @@ class StringType extends SchemaType
 	}
 }
 
-class NumberType
+class BooleanType extends SchemaType
+{
+	isType(typeValue)
+	{
+		return (typeValue === 'boolean' || typeValue === Boolean);
+	}
+}
+
+
+class NumberType extends SchemaType
 {
 	isType(typeValue)
 	{
@@ -24,7 +33,7 @@ class NumberType
 	}
 }
 
-class DateType
+class DateType extends SchemaType
 {
 	isType(typeValue)
 	{
@@ -41,6 +50,7 @@ module.exports = {
 	StringType,
 	NumberType,
 	DateType,
-	schemaTypes: [new StringType, new NumberType, new DateType],
+	BooleanType,
+	schemaTypes: [new StringType, new NumberType, new DateType, new BooleanType],
 	SchemaType,
 }

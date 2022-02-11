@@ -68,7 +68,7 @@ class SchemaTransformer
 			return subArray;
 		}
 
-		if (typeValue.name === 'Schema')
+		if (typeValue.__proto__?.constructor?.name === 'Schema')
 		{
 			//Visit Ref
 			return this.createReference(typeValue);

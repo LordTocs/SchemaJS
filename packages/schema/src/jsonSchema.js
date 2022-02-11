@@ -1,21 +1,21 @@
 const { SchemaTransformer } = require('./schemaTransformer');
-const { StringType, NumberType, DateType } = require('./schemaTypes');
+const { StringType, NumberType, DateType, BooleanType } = require('./schemaTypes');
 
 class JsonSchemaTransformer extends SchemaTransformer
 {
-	constructor(schema, includeDefinitions = true, definitionsObj = null)
+	constructor(schema, includeDefinitions = true, definitionsObj = null, definitionsRoot="#/definitions")
 	{
 		super(schema);
-		this.jsonSchema = {};
 		this.includeDefinitions = includeDefinitions;
 		this.definitionsObj = definitionsObj;
+		this.definitionsRoot = definitionsRoot;
 	}
 
 	_markRequired(name)
 	{
-		if (!("required" in this.jsonSchema))
-			this.jsonSchema.required = [];
-		this.jsonSchema.required.push(name);
+		if (!("required" in this.result))
+			this.result.required = [];
+		this.result.required.push(name);
 	}
 
 	_addReference(schema)
@@ -23,15 +23,15 @@ class JsonSchemaTransformer extends SchemaTransformer
 		if (!this.includeDefinitions)
 			return;
 		
-		if (!this.definitionsObj && !("definitions" in this.jsonSchema))
-			this.jsonSchema.definitions = {};
+		if (!this.definitionsObj && !("definitions" in this.result))
+			this.result.definitions = {};
 		
-		const defObj = this.definitionsObj || this.jsonSchema.definitions;
+		const defObj = this.definitionsObj || this.result.definitions;
 
 		if (defObj[schema.name])
 			return; //It's already added
 		
-		const subtf = new JsonSchemaTransformer(this, true, defObj);
+		const subtf = new JsonSchemaTransformer(schema, true, defObj, this.definitionsRoot);
 
 		subtf.transform();
 
@@ -59,7 +59,7 @@ class JsonSchemaTransformer extends SchemaTransformer
 		this._addReference(schema);
 
 		return {
-			$ref: `#/definitions/${schema.name}`
+			$ref: `${this.definitionsRoot}/${schema.name}`
 		}
 	}
 
@@ -103,6 +103,16 @@ function install (schema) {
 		return {};
 	}
 
+	BooleanType.prototype.toJsonSchemaType = function()
+	{
+		return 'boolean';
+	}
+
+	BooleanType.prototype.toJsonSchemaProperties = function()
+	{
+		return {};
+	}
+
 	NumberType.prototype.toJsonSchemaType = function()
 	{
 		return 'number';
@@ -132,9 +142,9 @@ function install (schema) {
 		return { format: 'date-time' };
 	}
 
-	schema.prototype.toJsonSchema = function(includeDefinitions = true, definitionsObj = null)
+	schema.prototype.toJsonSchema = function(includeDefinitions = true, definitionsObj = null, definitionsRoot = "#/definitions")
 	{
-		const tf = new JsonSchemaTransformer(this, includeDefinitions, definitionsObj);
+		const tf = new JsonSchemaTransformer(this, includeDefinitions, definitionsObj, definitionsRoot);
 
 		tf.transform();
 
