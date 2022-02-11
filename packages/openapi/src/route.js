@@ -10,16 +10,16 @@ function emitSchema(schema, doc)
 		schemaObj = { '$ref': `#/components/schemas/${schema.name}` };
 
 		//Add the reference manually
-		if (schema.name in doc.components.schemas)
-			return; //It's already added.
-
-		doc.components.schemas[schema.name] = schema.toJsonSchema(true, doc.components.schemas);
+		if (!(schema.name in doc.components.schemas))
+		{
+			doc.components.schemas[schema.name] = schema.toJsonSchema(true, doc.components.schemas, "#/components/schemas");
+		}
 	}
 	else
 	{
 		//This is an inline schema
 		//TODO: Handle refs
-		schemaObj = schema.toJsonSchema(true, doc.components.schemas);
+		schemaObj = schema.toJsonSchema(true, doc.components.schemas, "#/components/schemas");
 	}
 
 	return schemaObj;
@@ -32,7 +32,7 @@ class OpenAPIContent
 		this.content = schema instanceof Schema ? schema : new Schema(null, schema)
 	}
 
-	toDoc(doc)
+	toDocument(doc)
 	{
 		return {
 			'application/json': {
@@ -41,6 +41,8 @@ class OpenAPIContent
 		}
 	}
 }
+
+
 
 class RouteResponse
 {
@@ -51,12 +53,12 @@ class RouteResponse
 		this.description = description;
 	}
 
-	toDoc(doc)
+	toDocument(doc)
 	{
 		const result = {};
 
 		if (this.content)
-			result.content = this.content.toDoc(doc);
+			result.content = this.content.toDocument(doc);
 
 		if (this.description)
 			result.description = this.description;
@@ -75,7 +77,7 @@ class RouteParameter
 		this.required = !!required;
 	}
 
-	toDoc(doc)
+	toDocument(doc)
 	{
 		const result = {
 			name: this.name,
@@ -98,7 +100,7 @@ class RouteBody
 		this.contentSchema = contentSchema ? new OpenAPIContent(contentSchema) : null;
 	}
 
-	toDoc(doc)
+	toDocument(doc)
 	{
 		const result = {};
 
@@ -106,7 +108,7 @@ class RouteBody
 			result.description = this.description;
 
 		if (this.contentSchema)
-			result.content = this.contentSchema.toDoc(doc);
+			result.content = this.contentSchema.toDocument(doc);
 
 		return result;
 	}
@@ -145,8 +147,10 @@ class Route
 		this.description = spec.description;
 		this.body = null;
 		this.routePath = null;
+		this.security = spec.security instanceof Array ? spec.security : [];
 		this.pathParams = [];
 		this.queryParams = [];
+		this.handler = spec.handler instanceof Array ? spec.handler : [spec.handler];
 		this.tags = spec.tags || [];
 
 		//Parse out responses
@@ -208,9 +212,14 @@ class Route
 
 	applyToDocument(doc)
 	{
+		const convertedRoutePath = this.routePath.replace(/:([a-zA-Z0-9_\-]*)/g, (match, paramName) =>
+		{
+			return `{${paramName}}`;
+		})
+
 		//Ensure the route exists in the doc.
-		if (!(this.routePath in doc.paths))
-			doc.paths[this.routePath] = {};
+		if (!(convertedRoutePath in doc.paths))
+			doc.paths[convertedRoutePath] = {};
 
 		const opdoc = {};
 
@@ -226,14 +235,14 @@ class Route
 
 		for (let queryParam of this.queryParams)
 		{
-			const param = queryParam.toDoc(doc);
+			const param = queryParam.toDocument(doc);
 			param.in = 'query';
 			parameters.push(param);
 		}
 
 		for (let pathParam of this.pathParams)
 		{
-			const param = pathParam.toDoc(doc);
+			const param = pathParam.toDocument(doc);
 			param.in = 'path';
 			parameters.push(param);
 		}
@@ -245,7 +254,7 @@ class Route
 
 		if (this.body)
 		{
-			opdoc.requestBody = this.body.toDoc(doc);
+			opdoc.requestBody = this.body.toDocument(doc);
 		}
 
 		for (let code in this.responses)
@@ -253,10 +262,47 @@ class Route
 			if (!opdoc.responses)
 				opdoc.responses = {};
 
-			opdoc.responses[code] = this.responses[code].toDoc(doc);
+			opdoc.responses[code] = this.responses[code].toDocument(doc);
 		}
 
-		doc.paths[this.routePath][this.operation] = opdoc;
+		if (this.security.length > 0)
+		{
+			opdoc.security = this.security.map((handler) => handler.toDocument())
+		}
+
+		doc.paths[convertedRoutePath][this.operation] = opdoc;
+	}
+
+	applyRoute(router)
+	{
+		//TODO: Put security checkers here.
+		let security = [];
+		if (this.security.length > 0)
+		{
+			security = [async (req, res, next) =>
+			{
+				for (let handler of this.security)
+				{
+					if (await handler.expressValidator(req))
+					{
+						return next();
+					}
+				}
+
+				const notAuthorized = new Error("Not authorized");
+				notAuthorized.status = 401;
+				return next(notAuthorized);
+			}]
+		}
+
+		//TODO: Parse out the body here.
+
+
+		//TODO: Put validators here.
+
+		const chain = [...security, ...this.handler];
+
+		router[this.operation](this.routePath, chain);
 	}
 }
 

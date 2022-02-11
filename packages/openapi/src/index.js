@@ -1,12 +1,17 @@
 const { rp, Route } = require('./route');
+const { catchErrors } = require('./util');
+
+const { openIdConnect } = require('./security');
 
 class OpenAPI
 {
 	//Todo: Servers
-	constructor(info, routes)
+	constructor(info, servers, routes, security = [])
 	{
 		this.info = info;
 		this.routes = routes;
+		this.servers = servers;
+		this.security = security;
 	}
 
 	toDocument()
@@ -14,9 +19,11 @@ class OpenAPI
 		const result = {
 			openapi: '3.0.0',
 			info: this.info,
+			servers: this.servers,
 			components: {
 				schemas: {}
 			},
+			security: [],
 			paths: {},
 		};
 
@@ -26,8 +33,20 @@ class OpenAPI
 		}
 
 
+		const documentSecurity = this.security.map((sh) => sh.toDocument());
+
+		result.security = documentSecurity;
+
 		return result;
+	}
+
+	applyRoutes(router)
+	{
+		for (let route of this.routes)
+		{
+			route.applyRoute(router);
+		}
 	}
 }
 
-module.exports = { OpenAPI, Route, rp };
+module.exports = { OpenAPI, Route, rp, catchErrors, openIdConnect };
