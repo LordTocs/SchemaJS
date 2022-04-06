@@ -1,8 +1,9 @@
 {
-  "name": "schema-mongoose",
+  "name": "@LordTocs/schema-mongoose",
   "version": "0.0.1",
   "description": "",
   "main": "src/index.js",
+  "repository": "git://github.com/LordTocs/SchemaJS.git",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,6 +11,6 @@
   "license": "MIT",
   "dependencies": {
     "mongoose": "^6.0.11",
-	"schema": "^1.0.0"
+    "@LordTocs/schema": "^0.0.1"
   }
 }
