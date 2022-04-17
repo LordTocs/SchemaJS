@@ -1,4 +1,4 @@
-const { Schema } = require("schema");
+const { Schema } = require("@LordTocs/schema");
 
 function emitSchema(schema, doc)
 {

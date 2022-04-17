@@ -1,5 +1,5 @@
 
-const { SchemaTransformer } = require('schema');
+const { SchemaTransformer } = require('@LordTocs/schema');
 
 class MongooseSchemaTransformer extends SchemaTransformer
 {

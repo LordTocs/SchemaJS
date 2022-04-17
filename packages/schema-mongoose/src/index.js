@@ -1,5 +1,5 @@
 
-const { StringType, NumberType, DateType, SchemaType, BooleanType } = require('schema/src/schemaTypes');
+const { StringType, NumberType, DateType, SchemaType, BooleanType } = require('@LordTocs/schema/src/schemaTypes');
 const { MongooseSchemaTransformer } = require('./mongooseTransformer');
 
 

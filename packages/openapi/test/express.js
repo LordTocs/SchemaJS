@@ -1,6 +1,6 @@
 const { expect } = require('chai')
 
-const { Schema } = require('schema');
+const { Schema } = require('@LordTocs/schema');
 const axios = require('axios');
 const { OpenAPI, Route, rp } = require('../src/index');
 
